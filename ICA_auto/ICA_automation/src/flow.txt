@@ -1,0 +1,171 @@
+Selenium Automation Flow Snippet 
+
+
+public static void startAutomationFlow(String selectedCollection, String userPrompt) throws InterruptedException {
+
+        WebDriver driver = new ChromeDriver();
+
+        driver.get("https://remea.ica.ibm.com/ica/curatorai/apps/ui/new-chat/");
+        System.out.println(driver.getTitle());
+
+        driver.manage().window().maximize();
+
+        driver.findElement(By.cssSelector("input[type='text']"))
+              .sendKeys("Sanjana.s4@ibm.com");
+
+        driver.findElement(By.xpath("//button[text()='Continue']")).click();
+
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(30));
+
+        WebElement arrow = wait.until(
+            ExpectedConditions.presenceOfAllElementsLocatedBy(
+                By.cssSelector("span.ds-icon-arrow-right")
+            )
+        ).get(0);
+
+        ((JavascriptExecutor) driver).executeScript("arguments[0].click();", arrow);
+
+        WebDriverWait longWait = new WebDriverWait(driver, Duration.ofSeconds(30));
+
+        WebElement chat = longWait.until(
+            ExpectedConditions.elementToBeClickable(
+                By.cssSelector("a[data-testid='home-start-chat']")
+            )
+        );
+
+        ((JavascriptExecutor) driver).executeScript("arguments[0].click();", chat);
+
+        try {
+            WebDriverWait shortWait = new WebDriverWait(driver, Duration.ofSeconds(5));
+
+            WebElement closeBtn = shortWait.until(
+                ExpectedConditions.elementToBeClickable(
+                    By.cssSelector("button[aria-label='Close']")
+                )
+            );
+
+            ((JavascriptExecutor) driver).executeScript("arguments[0].click();", closeBtn);
+            System.out.println("Popup closed");
+
+        } catch (Exception e) {
+            System.out.println("No popup appeared");
+        }
+
+        try {
+            WebElement newChatIcon = longWait.until(
+                ExpectedConditions.elementToBeClickable(
+                    By.xpath("//span[contains(@class,'cds--tooltip-content') and text()='Start a New Chat']/ancestor::span//button")
+                )
+            );
+
+            ((JavascriptExecutor) driver).executeScript("arguments[0].click();", newChatIcon);
+
+            System.out.println("Clicked: Start a New Chat");
+
+            // Small wait for new chat to load
+            Thread.sleep(1500);
+
+        } catch (Exception e) {
+            System.out.println("New Chat button not found: " + e.getMessage());
+        }
+
+        WebDriverWait shortWait = new WebDriverWait(driver, Duration.ofSeconds(6));
+
+        WebElement gotItBtn = shortWait.until(
+            ExpectedConditions.elementToBeClickable(
+                By.cssSelector("button[data-testid='select-chat-type-popover-button']")
+            )
+        );
+
+        ((JavascriptExecutor) driver).executeScript("arguments[0].click();", gotItBtn);
+        System.out.println("Clicked Got it");
+
+        try {
+            WebElement plusBtn = longWait.until(
+                ExpectedConditions.elementToBeClickable(
+                    By.xpath("//button[.//*[name()='svg']//*[contains(@d,'17 15L17 8')]]")
+                )
+            );
+
+            ((JavascriptExecutor) driver).executeScript("arguments[0].click();", plusBtn);
+
+            System.out.println("Clicked Plus Icon");
+            Thread.sleep(1000);
+
+        } catch (Exception e) {
+            System.out.println("Plus icon not found: " + e.getMessage());
+        }
+
+        WebElement insertDoc = longWait.until(
+            ExpectedConditions.elementToBeClickable(
+                By.xpath("//div[text()='Insert Document Collection']")
+            )
+        );
+
+        ((JavascriptExecutor) driver).executeScript("arguments[0].click();", insertDoc);
+        System.out.println("Clicked Insert Document Collection");
+
+        Thread.sleep(1200);
+
+        WebElement searchBox = longWait.until(
+            ExpectedConditions.visibilityOfElementLocated(
+                By.cssSelector("#Search_id")
+            )
+        );
+
+        searchBox.clear();
+        searchBox.sendKeys(selectedCollection); // <-- Use the chosen collection here
+        System.out.println("Searched " + selectedCollection);
+
+        Thread.sleep(1500);
+
+        WebElement addCollection = longWait.until(
+            ExpectedConditions.elementToBeClickable(
+                By.cssSelector("button[data-testid='insert-collection-tile-add-button']")
+            )
+        );
+
+        ((JavascriptExecutor) driver).executeScript("arguments[0].click();", addCollection);
+        System.out.println("Added Collection");
+
+        Thread.sleep(1500);
+
+        WebElement chatInput = wait.until(
+            ExpectedConditions.visibilityOfElementLocated(
+                By.cssSelector("textarea[data-testid='chat-input__textarea']")
+            )
+        );
+
+        chatInput.click();
+        chatInput.sendKeys(userPrompt);
+        chatInput.sendKeys(Keys.ENTER);
+
+        WebDriverWait responseWait = new WebDriverWait(driver, Duration.ofSeconds(30));
+
+        WebElement responseContainer = responseWait.until(
+            ExpectedConditions.visibilityOfElementLocated(
+                By.cssSelector(".response-text-new-chat__container")
+            )
+        );
+
+        List<WebElement> responseDivs = responseContainer.findElements(By.cssSelector("div"));
+
+        StringBuilder responseText = new StringBuilder();
+        for (WebElement div : responseDivs) {
+            String t = div.getText().trim();
+            if (!t.isEmpty()) {
+                responseText.append(t).append("\n\n");
+            }
+        }
+
+        String finalText = responseText.toString().trim();
+
+        setClipboardText(finalText);
+        showOutput(finalText);
+
+    }
+
+
+Commands:
+winget install Microsoft.OpenJDK.21
+Extension Pack for Java  - ms-vscode.vscode-java-pack
